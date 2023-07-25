@@ -61,7 +61,8 @@ export type TimelineEvents =
   'itemover' |
   'itemout' |
   'timechange' |
-  'timechanged';
+  'timechanged' |
+  'zoom';
 export type Graph2dStyleType = 'line' | 'bar' | 'points';
 export type Graph2dBarChartAlign = 'left' | 'center' | 'right';
 export type Graph2dDrawPointsStyle = 'square' | 'circle';
@@ -238,6 +239,7 @@ export type TimelineOptionsTemplateFunction = (item?: any, element?: any, data?:
 export type TimelineOptionsComparisonFunction = (a: any, b: any) => number;
 export type TimelineOptionsGroupHeightModeType = 'auto' | 'fixed' | 'fitItems';
 export type TimelineOptionsClusterCriteriaFunction = (firstItem: TimelineItem, secondItem: TimelineItem) => boolean;
+export type TimelineOptionsZoomCallback = (zoomLevel: number) => void;
 export type TimelineOptionsCluster = {
   titleTemplate?: string;
   maxItems?: number;
@@ -257,6 +259,8 @@ export interface TimelineOptions {
   dataAttributes?: TimelineOptionsDataAttributesType;
   editable?: TimelineOptionsEditableType;
   end?: DateType;
+  mode?: "vertical" | 'horizontal';
+  direction?: "vertical" | 'horizontal';
   format?: TimelineFormatOption;
   groupEditable?: TimelineOptionsGroupEditableType;
   groupHeightMode?: TimelineOptionsGroupHeightModeType;
@@ -290,6 +294,7 @@ export interface TimelineOptions {
   onMoving?: TimelineOptionsItemCallbackFunction;
   onRemove?: TimelineOptionsItemCallbackFunction;
   onRemoveGroup?: TimelineOptionsGroupCallbackFunction;
+  onZoom?: TimelineOptionsZoomCallback;
   order?: TimelineOptionsComparisonFunction;
   orientation?: TimelineOptionsOrientationType;
   preferZoom?: boolean;
@@ -723,16 +728,18 @@ export class Timeline {
    * @param callback The callback function
    */
   zoomOut(percentage: number, options?: TimelineAnimationOptions, callback?: () => void): void;
-}
 
-export interface Timeline {
-  setGroups(groups?: TimelineGroup[]): void;
-  setItems(items?: TimelineItem[]): void;
-  getWindow(): TimelineWindow;
-  setWindow(start: any, date: any): void;
-  focus(selection: any): void;
-  on(event?: string, callback?: (properties: any) => void): void;
-  off(event: string, callback?: (properties?: any) => void): void;
+  /**
+   * Toggle following of custom time
+   *
+   * @param {string} id
+   */
+  toggleFollowCustomTime(id?: string): void;
+
+  /**
+   * Get the range associated with this Timeline
+   */
+  getRange(): TimelineRange
 }
 
 export interface TimelineWindow {
@@ -795,6 +802,21 @@ export interface AnimationOptions {
    * easeInQuint, easeOutQuint, easeInOutQuint.
    */
   easingFunction: EasingFunction;
+}
+
+export class TimelineRange {
+  startRolling: () => void;
+  isFollowing: () => boolean;
+  isRolling: () => boolean;
+  followCustomTime: (id: string) => void;
+  setParent: (parent: Timeline) => void;
+  stopFollowingCustomTime: (id: string) => void;
+  stopRolling: () => void;
+  setRange: (start: Date, end: Date, options: TimelineOptions, callback?: () => void, frameCallback?: () => void) => void;
+  getRange: () => { start: number, end: number };
+  zoom: (scale: number, center: number, delta: number, event: Event) => void;
+  move: (delta: number) => void;
+  moveTo: (moveTo: number) => void;
 }
 
 export type EasingFunction =
